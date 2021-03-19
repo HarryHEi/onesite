@@ -6,22 +6,28 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gopkg.in/olahol/melody.v1"
 
 	"onesite/core/config"
-	"onesite/core/server/router"
 )
 
-func NewHttpServer() *http.Server {
-	_s := gin.New()
-
-	router.InitRouter(_s)
-
-	return &http.Server{
-		Handler: _s,
-	}
+type Service struct {
+	S *gin.Engine
+	M *melody.Melody
 }
 
-func RunHttpServer() (err error) {
+func NewHttpService() *Service {
+	_s := &Service{
+		gin.New(),
+		melody.New(),
+	}
+
+	InitRouter(_s)
+
+	return _s
+}
+
+func (s *Service) Run() error {
 	lis, err := net.Listen(
 		"tcp",
 		fmt.Sprintf("%s:%d", config.CoreCfg.Server.Bind, config.CoreCfg.Server.Port),
@@ -29,7 +35,15 @@ func RunHttpServer() (err error) {
 	if err != nil {
 		return err
 	}
-	httpServer := NewHttpServer()
-	err = httpServer.Serve(lis)
+	server := http.Server{
+		Handler: s.S,
+	}
+	err = server.Serve(lis)
+	return err
+}
+
+func RunHttpServer() (err error) {
+	service := NewHttpService()
+	err = service.Run()
 	return err
 }

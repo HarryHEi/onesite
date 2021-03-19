@@ -3,10 +3,10 @@ package auth
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"onesite/core/dao"
 
 	"onesite/common/log"
 	"onesite/common/rest"
+	"onesite/core/dao"
 )
 
 type LoginForm struct {
