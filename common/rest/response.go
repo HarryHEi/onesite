@@ -1,6 +1,9 @@
 package rest
 
-import "github.com/gin-gonic/gin"
+import (
+	"errors"
+	"github.com/gin-gonic/gin"
+)
 
 type Response struct {
 	Success bool        `json:"success"`
@@ -15,6 +18,10 @@ func NoContent(c *gin.Context) {
 
 func BadRequest(c *gin.Context, err error) {
 	FailedWithErr(c, 400, err)
+}
+
+func Unauthorized(c *gin.Context, message string) {
+	FailedWithErr(c, 401, errors.New(message))
 }
 
 func Success(c *gin.Context, data interface{}) {

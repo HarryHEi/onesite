@@ -26,7 +26,10 @@ func Authorization(username, password string) (*model.User, error) {
 		return nil, err
 	}
 	user := &model.User{}
-	daoIns.Db.Model(&model.User{}).Where("username=?", username).First(user)
+	ret := daoIns.Db.Model(&model.User{}).Where("username=?", username).First(user)
+	if ret.Error != nil {
+		return nil, fmt.Errorf("query user failed %e", ret.Error)
+	}
 	if user.Username != username {
 		return nil, fmt.Errorf("unknown user %s", username)
 	}

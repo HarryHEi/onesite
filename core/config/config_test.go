@@ -24,6 +24,9 @@ max_idle_conn = 5
 addr = "172.172.177.191:6379"
 password = ""
 db = 0
+
+[auth]
+timeout = "8m03s"
 `
 
 func TestInit(t *testing.T) {

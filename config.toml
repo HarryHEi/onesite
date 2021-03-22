@@ -6,7 +6,7 @@ port = 8000
 
 [db]
 driver_name = "mysql"
-dsn = "herui:Admin@123@tcp(172.172.177.191:3306)/onesite_dev?charset=utf8mb4"
+dsn = "herui:Admin@123@tcp(172.172.177.191:3306)/onesite_dev?charset=utf8mb4&parseTime=true"
 max_open_conn = 10
 max_idle_conn = 5
 
@@ -14,3 +14,6 @@ max_idle_conn = 5
 addr = "172.172.177.191:6379"
 password = ""
 db = 0
+
+[auth]
+timeout = "1h"

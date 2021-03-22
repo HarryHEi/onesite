@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/BurntSushi/toml"
 )
 
@@ -36,6 +38,11 @@ func defaultConfig() *CoreConfig {
 			"",
 			0,
 		},
+		Auth: AuthConfig{
+			duration{
+				time.Hour,
+			},
+		},
 	}
 }
 
@@ -44,6 +51,7 @@ type CoreConfig struct {
 	Server    ServerConfig `toml:"server"`
 	Db        DbConfig     `toml:"db"`
 	Redis     RedisConfig  `toml:"redis"`
+	Auth      AuthConfig   `toml:"auth"`
 }
 
 type ServerConfig struct {
@@ -62,4 +70,18 @@ type RedisConfig struct {
 	Addr     string `toml:"addr"`
 	Password string `toml:"password"`
 	DB       int    `toml:"db"`
+}
+
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
+}
+
+type AuthConfig struct {
+	Timeout duration `toml:"timeout"`
 }
