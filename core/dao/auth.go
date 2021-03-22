@@ -19,8 +19,8 @@ func CheckPassword(password, genPass string) bool {
 	return GeneratePassword(password) == genPass
 }
 
-// 通过用户名密码验证用户
-func Authorization(username, password string) (*model.User, error) {
+// 通过用户名查询用户信息
+func QueryUser(username string) (*model.User, error) {
 	daoIns, err := GetDao()
 	if err != nil {
 		return nil, err
@@ -29,6 +29,15 @@ func Authorization(username, password string) (*model.User, error) {
 	ret := daoIns.Db.Model(&model.User{}).Where("username=?", username).First(user)
 	if ret.Error != nil {
 		return nil, fmt.Errorf("query user failed %e", ret.Error)
+	}
+	return user, nil
+}
+
+// 通过用户名密码验证用户
+func Authorization(username, password string) (*model.User, error) {
+	user, err := QueryUser(username)
+	if err != nil {
+		return nil, err
 	}
 	if user.Username != username {
 		return nil, fmt.Errorf("unknown user %s", username)

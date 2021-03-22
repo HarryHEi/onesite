@@ -2,7 +2,9 @@ package dao
 
 import (
 	"errors"
+
 	redis2 "onesite/common/redis"
+	"onesite/core/model"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
@@ -36,6 +38,11 @@ func InitDao() (err error) {
 	}
 
 	db, err := orm.GetDb()
+	if err != nil {
+		return err
+	}
+
+	err = db.AutoMigrate(&model.User{})
 	if err != nil {
 		return err
 	}

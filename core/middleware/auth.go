@@ -13,11 +13,11 @@ import (
 
 var (
 	authMiddleware *jwt.GinJWTMiddleware
-	identityKey    = "id"
+	identityKey    = "username"
 )
 
 type AuthPayload struct {
-	Id uint
+	Username string
 }
 
 type LoginForm struct {
@@ -35,7 +35,7 @@ func InitAuthMiddleware() (err error) {
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*AuthPayload); ok {
 				return jwt.MapClaims{
-					identityKey: v.Id,
+					identityKey: v.Username,
 				}
 			}
 			return jwt.MapClaims{}
@@ -43,7 +43,7 @@ func InitAuthMiddleware() (err error) {
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
 			return &AuthPayload{
-				Id: claims[identityKey].(uint),
+				Username: claims[identityKey].(string),
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -59,7 +59,7 @@ func InitAuthMiddleware() (err error) {
 				return nil, jwt.ErrFailedAuthentication
 			}
 
-			return &AuthPayload{user.ID}, nil
+			return &AuthPayload{user.Username}, nil
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
 			if _, ok := data.(*AuthPayload); ok {

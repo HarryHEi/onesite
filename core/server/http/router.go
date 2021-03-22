@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"onesite/core/server/api/v1/auth"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -29,6 +30,8 @@ func initApiV1(s *Service) {
 	{
 		authRouter.POST("/login", authMiddleware.LoginHandler)
 		authRouter.GET("/refresh", authMiddleware.RefreshHandler)
+
+		authRouter.GET("/user/info", authMiddleware.MiddlewareFunc(), auth.UserInfo())
 	}
 }
 
@@ -46,8 +49,7 @@ func initWsV1(s *Service) {
 }
 
 func initBasicRouter(s *Service) {
-	authMiddleware := middleware.GetAuthMiddleware()
-	s.S.GET("/ping", authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
+	s.S.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
 }
