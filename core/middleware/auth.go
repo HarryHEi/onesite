@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -9,6 +10,7 @@ import (
 	"onesite/common/rest"
 	"onesite/core/config"
 	"onesite/core/dao"
+	"onesite/core/model"
 )
 
 var (
@@ -98,4 +100,39 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 	}
 
 	return authMiddleware
+}
+
+// 解析用户实例，保存到key="userInstance"
+func ParseUserMiddleware() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		_, exist := c.Get("userInstance")
+		if exist {
+			return
+		}
+
+		claims := jwt.ExtractClaims(c)
+		username, ok := claims["username"].(string)
+		if !ok {
+			rest.BadRequest(c, errors.New("invalid username"))
+		}
+		user, err := dao.QueryUser(username)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+		c.Set("userInstance", user)
+	}
+}
+
+// 从上下文获取设置的用户实例
+func ParseUser(c *gin.Context) *model.User {
+	user, exist := c.Get("userInstance")
+	if !exist {
+		return nil
+	}
+	userInstance, ok := user.(*model.User)
+	if !ok {
+		return nil
+	}
+	return userInstance
 }

@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"onesite/core/server/api/v1/auth"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -10,6 +9,7 @@ import (
 
 	"onesite/common/log"
 	"onesite/core/middleware"
+	"onesite/core/server/api/v1/auth"
 	"onesite/core/server/api/v1/chat"
 )
 
@@ -38,13 +38,40 @@ func initApiV1(s *Service) {
 func initWsV1(s *Service) {
 	wsRouter := s.S.Group("/ws")
 
-	wsRouter.GET("/v1/chat", func(c *gin.Context) {
-		err := s.M.HandleRequest(c.Writer, c.Request)
-		log.Error("melody HandleRequest failed", zap.Error(err))
+	// 通过query params认证
+	authMiddleware := middleware.GetAuthMiddleware()
+	wsRouter.GET(
+		"/v1/chat",
+		authMiddleware.MiddlewareFunc(),
+		middleware.ParseUserMiddleware(),
+		func(c *gin.Context) {
+			user := middleware.ParseUser(c)
+			err := s.M.HandleRequestWithKeys(
+				c.Writer,
+				c.Request,
+				map[string]interface{}{
+					"user": user,
+				},
+			)
+			if err != nil {
+				log.Error("melody HandleRequest failed", zap.Error(err))
+			}
+		})
+
+	// 连接建立
+	s.M.HandleConnect(func(session *melody.Session) {
+		chat.Login(session)
 	})
 
+	// 消息
 	s.M.HandleMessage(func(session *melody.Session, bytes []byte) {
 		chat.Message(s.M, session, bytes)
+	})
+
+	// 连接断开
+	s.M.HandleClose(func(session *melody.Session, i int, s string) error {
+		chat.Logout(session)
+		return nil
 	})
 }
 
