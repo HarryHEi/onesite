@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"onesite/core/server/api/v1/admin"
+	"onesite/core/server/api/v1/auth"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -10,7 +11,6 @@ import (
 
 	"onesite/common/log"
 	"onesite/core/middleware"
-	"onesite/core/server/api/v1/auth"
 	"onesite/core/server/api/v1/chat"
 )
 
@@ -28,23 +28,32 @@ func initApiV1(s *Service) {
 
 	authMiddleware := middleware.GetAuthMiddleware()
 
+	// 认证
 	authRouter := v1Router.Group("/auth")
 	{
 		authRouter.POST("/login", authMiddleware.LoginHandler)
 		authRouter.GET("/refresh", authMiddleware.RefreshHandler)
-
-		authRouter.GET("/user/info", authMiddleware.MiddlewareFunc(), auth.UserInfo())
 	}
 
-	// use auth and user parse middleware
-	v1Router.Use(authMiddleware.MiddlewareFunc(), middleware.ParseUserMiddleware())
-
-	adminRouter := v1Router.Group("/admin")
+	// 用户信息
+	userRouter := v1Router.Group("/user")
+	userRouter.Use(authMiddleware.MiddlewareFunc())
 	{
-		adminRouter.GET("/users", middleware.AdminPermissionMiddleware(), admin.ListUsers())
-		adminRouter.POST("/user", middleware.AdminPermissionMiddleware(), admin.CreateUser())
-		adminRouter.DELETE("/user/:pk", middleware.AdminPermissionMiddleware(), admin.DeleteUser())
-		adminRouter.PATCH("/user/:pk", middleware.AdminPermissionMiddleware(), admin.PatchUpdateUser())
+		userRouter.GET("/info", auth.UserInfo())
+	}
+
+	// 管理员
+	adminRouter := v1Router.Group("/admin")
+	adminRouter.Use(
+		authMiddleware.MiddlewareFunc(),
+		middleware.ParseUserMiddleware(),
+		middleware.AdminPermissionMiddleware(),
+	)
+	{
+		adminRouter.GET("/users", admin.ListUsers())
+		adminRouter.POST("/user", admin.CreateUser())
+		adminRouter.DELETE("/user/:pk", admin.DeleteUser())
+		adminRouter.PATCH("/user/:pk", admin.PatchUpdateUser())
 	}
 }
 
