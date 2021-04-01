@@ -12,8 +12,16 @@ type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
+func Success(c *gin.Context, data interface{}) {
+	SuccessWithCode(c, 200, data)
+}
+
+func Created(c *gin.Context, data interface{}) {
+	SuccessWithCode(c, 201, data)
+}
+
 func NoContent(c *gin.Context) {
-	Success(c, nil)
+	SuccessWithCode(c, 200, nil)
 }
 
 func BadRequest(c *gin.Context, err error) {
@@ -24,14 +32,18 @@ func Unauthorized(c *gin.Context, message string) {
 	FailedWithErr(c, 401, errors.New(message))
 }
 
-func Success(c *gin.Context, data interface{}) {
+func PermissionDenied(c *gin.Context) {
+	FailedWithErr(c, 403, errors.New("permission denied"))
+}
+
+func SuccessWithCode(c *gin.Context, code int, data interface{}) {
 	resp := Response{
 		Success: true,
-		Code:    200,
+		Code:    code,
 		Msg:     "success",
 		Data:    data,
 	}
-	c.JSON(200, resp)
+	c.JSON(code, resp)
 	return
 }
 
@@ -43,4 +55,11 @@ func FailedWithErr(c *gin.Context, code int, err error) {
 		Data:    nil,
 	}
 	c.JSON(code, resp)
+	c.Abort()
+}
+
+// 分页查询固定响应格式
+type PaginationResponse struct {
+	Count int64       `json:"count"`
+	Data  interface{} `json:"data"`
 }

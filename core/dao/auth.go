@@ -47,3 +47,73 @@ func Authorization(username, password string) (*model.User, error) {
 	}
 	return user, nil
 }
+
+// 分页查询用户
+func ListUser(fields []string, page, pageSize int) (count int64, users []model.User, err error) {
+	daoIns, err := GetDao()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	if page <= 0 || pageSize <= 0 {
+		return 0, []model.User{}, nil
+	}
+
+	offset := (page - 1) * pageSize
+
+	ret := daoIns.Db.Model(&model.User{}).Select(fields).Count(&count)
+	if ret.Error != nil {
+		return 0, nil, ret.Error
+	}
+	if count == 0 {
+		return 0, nil, nil
+	}
+
+	ret = daoIns.Db.Model(&model.User{}).Select(fields).Offset(offset).Limit(pageSize).Find(&users)
+	if ret.Error != nil {
+		return 0, nil, ret.Error
+	}
+	return count, users, nil
+}
+
+// 新增用户
+func CreateUser(user *model.User) (*model.User, error) {
+	daoIns, err := GetDao()
+	if err != nil {
+		return nil, err
+	}
+
+	ret := daoIns.Db.Create(user)
+	if ret.Error != nil {
+		return nil, ret.Error
+	}
+	return user, nil
+}
+
+// 删除用户
+func DeleteUser(pk interface{}) error {
+	daoIns, err := GetDao()
+	if err != nil {
+		return err
+	}
+
+	ret := daoIns.Db.Model(&model.User{}).Unscoped().Delete(model.User{}, pk)
+	if ret.Error != nil {
+		return ret.Error
+	}
+	return nil
+}
+
+// 更新用户
+func UpdateUser(pk, v interface{}) error {
+	daoIns, err := GetDao()
+	if err != nil {
+		return err
+	}
+
+	ret := daoIns.Db.Model(&model.User{}).Where("id = ?", pk).Updates(v)
+	if ret.Error != nil {
+		return ret.Error
+	}
+	return nil
+}

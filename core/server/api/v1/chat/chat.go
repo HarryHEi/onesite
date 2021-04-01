@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"fmt"
+	"encoding/json"
 
 	"go.uber.org/zap"
 	"gopkg.in/olahol/melody.v1"
@@ -11,7 +11,7 @@ import (
 )
 
 // 登录
-func Login(session *melody.Session) {
+func Login(m *melody.Melody, session *melody.Session) {
 	userInstance, ok := middleware.ParseWsUser(session)
 	if !ok {
 		log.Error("unauthorized")
@@ -19,7 +19,14 @@ func Login(session *melody.Session) {
 		return
 	}
 
-	fmt.Println(userInstance.Username, userInstance.Name, "Login")
+	greetingMsg := WsMessage{
+		SystemMsgCode,
+		"",
+		userInstance.Name + " Login.",
+	}
+	greetingMsgStr, _ := json.Marshal(greetingMsg)
+
+	_ = m.Broadcast(greetingMsgStr)
 }
 
 // 消息
@@ -31,9 +38,14 @@ func Message(m *melody.Melody, session *melody.Session, bytes []byte) {
 		return
 	}
 
-	fmt.Println(userInstance.Username, userInstance.Name, string(bytes))
+	userMessage := WsMessage{
+		UserMsgCode,
+		userInstance.Name + "(" + userInstance.Username + ")",
+		string(bytes),
+	}
+	userMessageStr, _ := json.Marshal(userMessage)
 
-	err := m.BroadcastOthers(bytes, session)
+	err := m.BroadcastOthers(userMessageStr, session)
 	if err != nil {
 		log.Error("BroadcastOthers failed", zap.Error(err))
 		_ = session.Close()
@@ -42,7 +54,7 @@ func Message(m *melody.Melody, session *melody.Session, bytes []byte) {
 }
 
 // 登出
-func Logout(session *melody.Session) {
+func Logout(m *melody.Melody, session *melody.Session) {
 	userInstance, ok := middleware.ParseWsUser(session)
 	if !ok {
 		log.Error("unauthorized")
@@ -50,5 +62,17 @@ func Logout(session *melody.Session) {
 		return
 	}
 
-	fmt.Println(userInstance.Username, userInstance.Name, "Logout")
+	byeMsg := WsMessage{
+		SystemMsgCode,
+		"",
+		userInstance.Name + " Logout.",
+	}
+	byeMsgStr, _ := json.Marshal(byeMsg)
+
+	err := m.Broadcast(byeMsgStr)
+	if err != nil {
+		log.Error("Broadcast failed", zap.Error(err))
+		_ = session.Close()
+		return
+	}
 }

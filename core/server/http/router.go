@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"onesite/core/server/api/v1/admin"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -26,12 +27,24 @@ func initApiV1(s *Service) {
 	v1Router := s.S.Group("/api/v1")
 
 	authMiddleware := middleware.GetAuthMiddleware()
+
 	authRouter := v1Router.Group("/auth")
 	{
 		authRouter.POST("/login", authMiddleware.LoginHandler)
 		authRouter.GET("/refresh", authMiddleware.RefreshHandler)
 
 		authRouter.GET("/user/info", authMiddleware.MiddlewareFunc(), auth.UserInfo())
+	}
+
+	// use auth and user parse middleware
+	v1Router.Use(authMiddleware.MiddlewareFunc(), middleware.ParseUserMiddleware())
+
+	adminRouter := v1Router.Group("/admin")
+	{
+		adminRouter.GET("/users", middleware.AdminPermissionMiddleware(), admin.ListUsers())
+		adminRouter.POST("/user", middleware.AdminPermissionMiddleware(), admin.CreateUser())
+		adminRouter.DELETE("/user/:pk", middleware.AdminPermissionMiddleware(), admin.DeleteUser())
+		adminRouter.PATCH("/user/:pk", middleware.AdminPermissionMiddleware(), admin.PatchUpdateUser())
 	}
 }
 
@@ -60,7 +73,7 @@ func initWsV1(s *Service) {
 
 	// 连接建立
 	s.M.HandleConnect(func(session *melody.Session) {
-		chat.Login(session)
+		chat.Login(s.M, session)
 	})
 
 	// 消息
@@ -69,8 +82,8 @@ func initWsV1(s *Service) {
 	})
 
 	// 连接断开
-	s.M.HandleClose(func(session *melody.Session, i int, s string) error {
-		chat.Logout(session)
+	s.M.HandleClose(func(session *melody.Session, _ int, _ string) error {
+		chat.Logout(s.M, session)
 		return nil
 	})
 }

@@ -136,3 +136,15 @@ func ParseUser(c *gin.Context) *model.User {
 	}
 	return userInstance
 }
+
+// 检查管理员权限
+func AdminPermissionMiddleware() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		user := ParseUser(c)
+		if user == nil || !user.IsAdmin {
+			rest.PermissionDenied(c)
+			return
+		}
+		c.Next()
+	}
+}
