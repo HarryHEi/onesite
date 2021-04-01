@@ -1,6 +1,8 @@
 package config
 
 import (
+	"net/url"
+	"os"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -17,7 +19,28 @@ func Init(configFile string) error {
 	}
 
 	_, err := toml.DecodeFile(configFile, &CoreCfg)
+	if err != nil {
+		return err
+	}
+
+	updateFromEnv()
+
 	return err
+}
+
+// 从环境变量获取配置
+func updateFromEnv() {
+	// Db -> Dsn
+	dbDsn, err := url.QueryUnescape(os.Getenv("DB_DSN"))
+	if err == nil && dbDsn != "" {
+		CoreCfg.Db.Dsn = dbDsn
+	}
+
+	// Redis -> Addr
+	redisAddr, err := url.QueryUnescape(os.Getenv("REDIS_ADDR"))
+	if err == nil && redisAddr != "" {
+		CoreCfg.Redis.Addr = redisAddr
+	}
 }
 
 func defaultConfig() *CoreConfig {
