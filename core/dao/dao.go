@@ -47,7 +47,11 @@ func InitDao() (err error) {
 		return err
 	}
 
-	err = redis2.InitRedis()
+	err = redis2.InitRedis(
+		redis2.Addr(config.CoreCfg.Redis.Addr),
+		redis2.Password(config.CoreCfg.Redis.Password),
+		redis2.Db(config.CoreCfg.Redis.DB),
+	)
 	if err != nil {
 		return err
 	}
