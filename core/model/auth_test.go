@@ -32,8 +32,8 @@ func (s *AuthTestSuite) SetupTest() {
 func (s *AuthTestSuite) TestCRUD() {
 	// Create
 	createUser := model.User{
-		Username: "19167633",
-		Name:     "何瑞",
+		Username: "username",
+		Name:     "name",
 		IsAdmin:  true,
 	}
 	s.OrmDb.Create(&createUser)
