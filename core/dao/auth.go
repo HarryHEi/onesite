@@ -117,3 +117,14 @@ func UpdateUser(pk, v interface{}) error {
 	}
 	return nil
 }
+
+// 创建管理员账户
+func CreateSuperuserIfNotExists(username, password string) error {
+	_, err := CreateUser(&model.User{
+		Username: username,
+		Password: GeneratePassword(password),
+		Name:     "管理员",
+		IsAdmin:  true,
+	})
+	return err
+}
