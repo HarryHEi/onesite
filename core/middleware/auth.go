@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -72,6 +73,22 @@ func InitAuthMiddleware() (err error) {
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {
 			rest.Unauthorized(c, message)
+		},
+		LoginResponse: func(c *gin.Context, code int, token string, t time.Time) {
+			if err != nil {
+				log.Println(err)
+			}
+
+			rest.Success(c, gin.H{
+				"token":  token,
+				"expire": t.Format(time.RFC3339),
+			})
+		},
+		RefreshResponse: func(c *gin.Context, code int, token string, expire time.Time) {
+			rest.Success(c, gin.H{
+				"token":  token,
+				"expire": expire.Format(time.RFC3339),
+			})
 		},
 		// TokenLookup is a string in the form of "<source>:<name>" that is used
 		// to extract token from the request.
