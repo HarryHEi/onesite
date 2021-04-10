@@ -56,7 +56,8 @@ func ListUser(fields []string, page, pageSize int) (count int64, users []model.U
 	}
 
 	if page <= 0 || pageSize <= 0 {
-		return 0, []model.User{}, nil
+		page = 1
+		pageSize = 10
 	}
 
 	offset := (page - 1) * pageSize

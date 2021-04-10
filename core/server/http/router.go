@@ -2,8 +2,6 @@ package http
 
 import (
 	"fmt"
-	"onesite/core/server/api/v1/admin"
-	"onesite/core/server/api/v1/auth"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -11,7 +9,9 @@ import (
 
 	"onesite/common/log"
 	"onesite/core/middleware"
+	"onesite/core/server/api/v1/admin"
 	"onesite/core/server/api/v1/chat"
+	"onesite/core/server/api/v1/user"
 )
 
 // middleware
@@ -37,9 +37,12 @@ func initApiV1(s *Service) {
 
 	// 用户信息
 	userRouter := v1Router.Group("/user")
-	userRouter.Use(authMiddleware.MiddlewareFunc())
+	userRouter.Use(
+		authMiddleware.MiddlewareFunc(),
+		middleware.ParseUserMiddleware(),
+	)
 	{
-		userRouter.GET("/info", auth.UserInfo())
+		userRouter.GET("/info", user.Info())
 	}
 
 	// 管理员
@@ -67,12 +70,12 @@ func initWsV1(s *Service) {
 		authMiddleware.MiddlewareFunc(),
 		middleware.ParseUserMiddleware(),
 		func(c *gin.Context) {
-			user := middleware.ParseUser(c)
+			u := middleware.ParseUser(c)
 			err := s.M.HandleRequestWithKeys(
 				c.Writer,
 				c.Request,
 				map[string]interface{}{
-					"user": user,
+					"user": u,
 				},
 			)
 			if err != nil {

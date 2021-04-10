@@ -1,8 +1,8 @@
 package admin
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
+
 	"onesite/common/rest"
 	"onesite/core/dao"
 	"onesite/core/model"
@@ -11,13 +11,17 @@ import (
 func ListUsers() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var request rest.PaginationQueryParams
-		err := c.Bind(&request)
+		err := c.ShouldBind(&request)
 		if err != nil {
-			rest.BadRequest(c, errors.New("invalid params"))
+			rest.BadRequest(c, err)
 			return
 		}
 
-		count, users, err := dao.ListUser([]string{"id", "username", "name", "is_admin"}, 1, 10)
+		count, users, err := dao.ListUser(
+			[]string{"id", "username", "name", "is_admin"},
+			request.Page,
+			request.PageSize,
+		)
 		if err != nil {
 			rest.BadRequest(c, err)
 			return
@@ -32,9 +36,9 @@ func ListUsers() func(c *gin.Context) {
 func CreateUser() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var request CreateUserRequest
-		err := c.Bind(&request)
+		err := c.ShouldBind(&request)
 		if err != nil {
-			rest.BadRequest(c, errors.New("invalid params"))
+			rest.BadRequest(c, err)
 			return
 		}
 
@@ -54,8 +58,13 @@ func CreateUser() func(c *gin.Context) {
 
 func DeleteUser() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		pk := c.Param("pk")
-		err := dao.DeleteUser(pk)
+		var request rest.PKDetailUri
+		err := c.ShouldBindUri(&request)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+		err = dao.DeleteUser(request.PK)
 		if err != nil {
 			rest.BadRequest(c, err)
 			return
@@ -66,15 +75,19 @@ func DeleteUser() func(c *gin.Context) {
 
 func PatchUpdateUser() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		pk := c.Param("pk")
-		request := make(map[string]interface{})
-		err := c.Bind(&request)
+		var pkRequest rest.PKDetailUri
+		err := c.ShouldBindUri(&pkRequest)
 		if err != nil {
-			rest.BadRequest(c, errors.New("invalid params"))
+			rest.BadRequest(c, err)
 			return
 		}
-
-		err = dao.UpdateUser(pk, request)
+		var request UpdateUserRequest
+		err = c.ShouldBind(&request)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+		err = dao.UpdateUser(pkRequest.PK, request.Fields())
 		if err != nil {
 			rest.BadRequest(c, err)
 			return

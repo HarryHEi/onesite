@@ -1,6 +1,9 @@
 package admin
 
-import "onesite/core/model"
+import (
+	"onesite/core/dao"
+	"onesite/core/model"
+)
 
 type UsersResponse struct {
 	Id       uint   `json:"id"`
@@ -27,8 +30,24 @@ func UsersResponseFromUserModels(users []model.User) []*UsersResponse {
 }
 
 type CreateUserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	IsAdmin  bool   `json:"is_admin"`
+	Username string `json:"username" form:"username" binding:"required,gte=3,lte=32"`
+	Password string `json:"password" form:"password" binding:"required,gte=6,lte=32"`
+	Name     string `json:"name" form:"name" binding:"required,gte=1,lte=64"`
+	IsAdmin  bool   `json:"is_admin" form:"is_admin"`
+}
+
+type UpdateUserRequest struct {
+	Username string `json:"username" form:"username" binding:"required,gte=3,lte=32"`
+	Name     string `json:"name" form:"name" binding:"required,gte=1,lte=64"`
+	Password string `json:"password" form:"password" binding:"required,gte=6,lte=32"`
+	IsAdmin  bool   `json:"is_admin" form:"is_admin"`
+}
+
+func (u *UpdateUserRequest) Fields() map[string]interface{} {
+	return map[string]interface{}{
+		"username": u.Username,
+		"name":     u.Name,
+		"password": dao.GeneratePassword(u.Password),
+		"is_admin": u.IsAdmin,
+	}
 }
