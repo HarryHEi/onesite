@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/olahol/melody.v1"
 
-	"onesite/core/config"
+	"onesite/common/config"
 )
 
 type Service struct {

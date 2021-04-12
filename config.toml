@@ -15,5 +15,8 @@ addr = "172.172.177.191:6379"
 password = ""
 db = 0
 
+[mongo]
+uri = "mongodb://172.172.177.191:27017/"
+
 [auth]
 timeout = "1h"

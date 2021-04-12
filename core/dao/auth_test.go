@@ -1,11 +1,12 @@
 package dao_test
 
 import (
-	"onesite/core/config"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"onesite/common/config"
 	"onesite/core/dao"
 	"onesite/core/model"
 )

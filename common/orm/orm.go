@@ -2,29 +2,29 @@ package orm
 
 import (
 	"errors"
-	"onesite/core/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	"onesite/common/config"
 )
 
 var (
 	_db *gorm.DB
-	Cfg = defaultConfig()
 )
 
 func InitOrm(options ...Option) (err error) {
 	for _, option := range options {
-		option(Cfg)
+		option(&config.CoreCfg.Db)
 	}
-	switch Cfg.DriverName {
+	switch config.CoreCfg.Db.DriverName {
 	case "mysql":
-		_db, err = gorm.Open(mysql.Open(Cfg.Dsn), &gorm.Config{})
+		_db, err = gorm.Open(mysql.Open(config.CoreCfg.Db.Dsn), &gorm.Config{})
 	case "sqlite3":
-		_db, err = gorm.Open(sqlite.Open(Cfg.Dsn), &gorm.Config{})
+		_db, err = gorm.Open(sqlite.Open(config.CoreCfg.Db.Dsn), &gorm.Config{})
 	default:
-		return errors.New("unknown db driver: " + Cfg.DriverName)
+		return errors.New("unknown db driver: " + config.CoreCfg.Db.DriverName)
 	}
 	if err != nil {
 		return err
@@ -35,8 +35,8 @@ func InitOrm(options ...Option) (err error) {
 		return err
 	}
 
-	sqlDb.SetMaxOpenConns(Cfg.MaxOpenConn)
-	sqlDb.SetMaxIdleConns(Cfg.MaxIdleConn)
+	sqlDb.SetMaxOpenConns(config.CoreCfg.Db.MaxOpenConn)
+	sqlDb.SetMaxIdleConns(config.CoreCfg.Db.MaxIdleConn)
 	return sqlDb.Ping()
 }
 
@@ -46,15 +46,6 @@ func GetDb() (*gorm.DB, error) {
 	}
 
 	return _db, nil
-}
-
-func defaultConfig() *config.DbConfig {
-	return &config.DbConfig{
-		DriverName:  "sqlite3",
-		Dsn:         "sqlite3.db",
-		MaxOpenConn: 10,
-		MaxIdleConn: 5,
-	}
 }
 
 type Option func(*config.DbConfig)

@@ -9,12 +9,11 @@ import (
 )
 
 var (
-	CoreCfg *CoreConfig
+	CoreCfg = defaultConfig()
 )
 
 func Init(configFile string) error {
 	if configFile == "" {
-		CoreCfg = defaultConfig()
 		return nil
 	}
 
@@ -41,6 +40,12 @@ func updateFromEnv() {
 	if err == nil && redisAddr != "" {
 		CoreCfg.Redis.Addr = redisAddr
 	}
+
+	// Mongo -> Uri
+	mongoUri, err := url.QueryUnescape(os.Getenv("MONGO_URI"))
+	if err == nil && redisAddr != "" {
+		CoreCfg.Mongo.Uri = mongoUri
+	}
 }
 
 func defaultConfig() *CoreConfig {
@@ -66,6 +71,9 @@ func defaultConfig() *CoreConfig {
 				time.Hour,
 			},
 		},
+		Mongo: MongoConfig{
+			"mongodb://172.172.177.191:27017/",
+		},
 	}
 }
 
@@ -75,6 +83,7 @@ type CoreConfig struct {
 	Db        DbConfig     `toml:"db"`
 	Redis     RedisConfig  `toml:"redis"`
 	Auth      AuthConfig   `toml:"auth"`
+	Mongo     MongoConfig  `toml:"mongo"`
 }
 
 type ServerConfig struct {
@@ -93,6 +102,10 @@ type RedisConfig struct {
 	Addr     string `toml:"addr"`
 	Password string `toml:"password"`
 	DB       int    `toml:"db"`
+}
+
+type MongoConfig struct {
+	Uri string `toml:"uri"`
 }
 
 type duration struct {

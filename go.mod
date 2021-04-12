@@ -12,6 +12,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.5
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
+	go.mongodb.org/mongo-driver v1.5.1
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	gopkg.in/olahol/melody.v1 v1.0.0-20170518105555-d52139073376

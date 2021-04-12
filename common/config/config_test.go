@@ -1,10 +1,13 @@
-package config
+package config_test
 
 import (
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"onesite/common/config"
 )
 
 var conf = `
@@ -25,6 +28,9 @@ addr = "172.172.177.191:6379"
 password = ""
 db = 0
 
+[mongo]
+uri = "mongodb://172.172.177.191:27017/"
+
 [auth]
 timeout = "8m03s"
 `
@@ -33,7 +39,7 @@ func TestInit(t *testing.T) {
 	testFile := "/tmp/oneSiteTestFile.toml"
 	err := ioutil.WriteFile(testFile, []byte(conf), 0644)
 	require.Nil(t, err)
-	err = Init(testFile)
+	err = config.Init(testFile)
 	require.Nil(t, err)
 	err = os.Remove(testFile)
 	require.Nil(t, err)

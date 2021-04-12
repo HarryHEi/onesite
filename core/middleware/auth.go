@@ -8,8 +8,8 @@ import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 
+	"onesite/common/config"
 	"onesite/common/rest"
-	"onesite/core/config"
 	"onesite/core/dao"
 	"onesite/core/model"
 )

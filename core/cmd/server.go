@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"onesite/common/config"
 	"onesite/common/log"
-	"onesite/core/config"
 	"onesite/core/dao"
 	"onesite/core/server"
 )
