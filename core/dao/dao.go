@@ -2,8 +2,10 @@ package dao
 
 import (
 	"errors"
+	mongo2 "onesite/common/mongo"
 
 	"github.com/go-redis/redis/v8"
+	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 
 	"onesite/common/orm"
@@ -18,6 +20,7 @@ var (
 type Dao struct {
 	Db    *gorm.DB
 	Redis *redis.Client
+	Mongo *mongo.Client
 }
 
 func InitDao() (err error) {
@@ -50,9 +53,20 @@ func InitDao() (err error) {
 		return err
 	}
 
+	err = mongo2.InitMongo()
+	if err != nil {
+		return err
+	}
+
+	mg, err := mongo2.GetMongo()
+	if err != nil {
+		return err
+	}
+
 	_dao = &Dao{
 		db,
 		rd,
+		mg,
 	}
 	return nil
 }
