@@ -41,10 +41,14 @@ func updateFromEnv() {
 		CoreCfg.Redis.Addr = redisAddr
 	}
 
-	// Mongo -> Uri
+	// Mongo -> Uri/Db
 	mongoUri, err := url.QueryUnescape(os.Getenv("MONGO_URI"))
 	if err == nil && redisAddr != "" {
 		CoreCfg.Mongo.Uri = mongoUri
+	}
+	mongoDb, err := url.QueryUnescape(os.Getenv("MONGO_DB"))
+	if err == nil && mongoDb != "" {
+		CoreCfg.Mongo.Db = mongoDb
 	}
 }
 
@@ -73,6 +77,7 @@ func defaultConfig() *CoreConfig {
 		},
 		Mongo: MongoConfig{
 			"mongodb://172.172.177.191:27017/",
+			"onesite",
 		},
 	}
 }
@@ -106,6 +111,7 @@ type RedisConfig struct {
 
 type MongoConfig struct {
 	Uri string `toml:"uri"`
+	Db  string `toml:"db"`
 }
 
 type duration struct {

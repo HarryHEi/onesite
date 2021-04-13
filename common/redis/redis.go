@@ -38,20 +38,20 @@ func GetRedis() (*redis.Client, error) {
 
 type Option func(*config.RedisConfig)
 
-func Addr(addr string) Option {
-	return func(config *config.RedisConfig) {
-		config.Addr = addr
-	}
-}
-
-func Password(password string) Option {
-	return func(config *config.RedisConfig) {
-		config.Password = password
-	}
-}
-
-func Db(db int) Option {
-	return func(config *config.RedisConfig) {
-		config.DB = db
-	}
-}
+//func Addr(addr string) Option {
+//	return func(config *config.RedisConfig) {
+//		config.Addr = addr
+//	}
+//}
+//
+//func Password(password string) Option {
+//	return func(config *config.RedisConfig) {
+//		config.Password = password
+//	}
+//}
+//
+//func Db(db int) Option {
+//	return func(config *config.RedisConfig) {
+//		config.DB = db
+//	}
+//}

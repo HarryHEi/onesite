@@ -1,13 +1,36 @@
 package chat
 
-const (
-	SystemMsgCode = iota
-	UserMsgCode
+import (
+	"encoding/json"
+
+	"onesite/core/dao"
+	"onesite/core/model"
 )
 
-// 表示一个消息
-type WsMessage struct {
-	Code int    `json:"code"`
-	Src  string `json:"src"`
-	Data string `json:"data"`
+func MakeSystemMessage(msg string) []byte {
+	msgObj := model.Message{
+		Code: model.SystemMsgCode,
+		Src:  "",
+		Data: msg,
+	}
+	msgStr, _ := json.Marshal(msgObj)
+	return msgStr
+}
+
+func MakeUserMessage(username, name, msg string) []byte {
+	msgObj := model.Message{
+		Code: model.UserMsgCode,
+		Src:  name + "(" + username + ")",
+		Data: msg,
+	}
+	msgStr, _ := json.Marshal(msgObj)
+	return msgStr
+}
+
+func SaveUserMessage(username, name, msg string) error {
+	return dao.SaveMessage(&model.Message{
+		Code: model.UserMsgCode,
+		Src:  name + "(" + username + ")",
+		Data: msg,
+	})
 }

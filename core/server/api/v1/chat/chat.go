@@ -1,16 +1,17 @@
 package chat
 
 import (
-	"encoding/json"
-
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gopkg.in/olahol/melody.v1"
 
 	"onesite/common/log"
+	"onesite/common/rest"
+	"onesite/core/dao"
 	"onesite/core/middleware"
 )
 
-// 登录
+// Login 登录
 func Login(m *melody.Melody, session *melody.Session) {
 	userInstance, ok := middleware.ParseWsUser(session)
 	if !ok {
@@ -19,17 +20,10 @@ func Login(m *melody.Melody, session *melody.Session) {
 		return
 	}
 
-	greetingMsg := WsMessage{
-		SystemMsgCode,
-		"",
-		userInstance.Name + " Login.",
-	}
-	greetingMsgStr, _ := json.Marshal(greetingMsg)
-
-	_ = m.Broadcast(greetingMsgStr)
+	_ = m.Broadcast(MakeSystemMessage(userInstance.Name + " Login."))
 }
 
-// 消息
+// Message 消息
 func Message(m *melody.Melody, session *melody.Session, bytes []byte) {
 	userInstance, ok := middleware.ParseWsUser(session)
 	if !ok {
@@ -38,14 +32,24 @@ func Message(m *melody.Melody, session *melody.Session, bytes []byte) {
 		return
 	}
 
-	userMessage := WsMessage{
-		UserMsgCode,
-		userInstance.Name + "(" + userInstance.Username + ")",
-		string(bytes),
-	}
-	userMessageStr, _ := json.Marshal(userMessage)
-
-	err := m.BroadcastOthers(userMessageStr, session)
+	go func() {
+		err := SaveUserMessage(
+			userInstance.Username,
+			userInstance.Name,
+			string(bytes),
+		)
+		if err != nil {
+			log.Error("SaveUserMessage Failed", zap.Error(err))
+		}
+	}()
+	err := m.BroadcastOthers(
+		MakeUserMessage(
+			userInstance.Username,
+			userInstance.Name,
+			string(bytes),
+		),
+		session,
+	)
 	if err != nil {
 		log.Error("BroadcastOthers failed", zap.Error(err))
 		_ = session.Close()
@@ -53,7 +57,7 @@ func Message(m *melody.Melody, session *melody.Session, bytes []byte) {
 	}
 }
 
-// 登出
+// Logout 登出
 func Logout(m *melody.Melody, session *melody.Session) {
 	userInstance, ok := middleware.ParseWsUser(session)
 	if !ok {
@@ -62,17 +66,23 @@ func Logout(m *melody.Melody, session *melody.Session) {
 		return
 	}
 
-	byeMsg := WsMessage{
-		SystemMsgCode,
-		"",
-		userInstance.Name + " Logout.",
-	}
-	byeMsgStr, _ := json.Marshal(byeMsg)
-
-	err := m.Broadcast(byeMsgStr)
+	err := m.Broadcast(MakeSystemMessage(userInstance.Name + " Logout."))
 	if err != nil {
 		log.Error("Broadcast failed", zap.Error(err))
 		_ = session.Close()
 		return
+	}
+}
+
+// MessageHistory 历史消息
+func MessageHistory() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		messages, err := dao.QueryMessage(20)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+
+		rest.Success(c, messages)
 	}
 }

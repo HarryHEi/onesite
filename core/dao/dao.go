@@ -1,13 +1,15 @@
 package dao
 
 import (
+	"context"
 	"errors"
-	mongo2 "onesite/common/mongo"
 
 	"github.com/go-redis/redis/v8"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 
+	mongo2 "onesite/common/mongo"
 	"onesite/common/orm"
 	redis2 "onesite/common/redis"
 	"onesite/core/model"
@@ -20,7 +22,7 @@ var (
 type Dao struct {
 	Db    *gorm.DB
 	Redis *redis.Client
-	Mongo *mongo.Client
+	Mongo *mongo.Database
 }
 
 func InitDao() (err error) {
@@ -34,11 +36,6 @@ func InitDao() (err error) {
 	}
 
 	db, err := orm.GetDb()
-	if err != nil {
-		return err
-	}
-
-	err = db.AutoMigrate(&model.User{})
 	if err != nil {
 		return err
 	}
@@ -76,4 +73,37 @@ func GetDao() (*Dao, error) {
 		return nil, errors.New("call InitDao before GetDao")
 	}
 	return _dao, nil
+}
+
+func Migrate() error {
+	dao, err := GetDao()
+	if err != nil {
+		return err
+	}
+
+	// DB
+	err = dao.Db.AutoMigrate(&model.User{})
+	if err != nil {
+		return err
+	}
+
+	// Mongo
+	err = dao.Mongo.CreateCollection(context.Background(), model.MessageCollectionName)
+	if err != nil {
+		return err
+	}
+	indexes := dao.Mongo.Collection(model.MessageCollectionName).Indexes()
+	_, err = indexes.CreateOne(
+		context.Background(),
+		mongo.IndexModel{
+			Keys: bson.D{
+				{"creation", 1},
+			},
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

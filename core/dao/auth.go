@@ -8,18 +8,18 @@ import (
 	"onesite/core/model"
 )
 
-// 生成MD5加密的密码
+// GeneratePassword 生成MD5加密的密码
 func GeneratePassword(password string) string {
 	pass := []byte(password)
 	return fmt.Sprintf("%x", md5.Sum(pass))
 }
 
-// 验证比较密码明文和MD5加密的密文
+// CheckPassword 验证比较密码明文和MD5加密的密文
 func CheckPassword(password, genPass string) bool {
 	return GeneratePassword(password) == genPass
 }
 
-// 通过用户名查询用户信息
+// QueryUser 通过用户名查询用户信息
 func QueryUser(username string) (*model.User, error) {
 	daoIns, err := GetDao()
 	if err != nil {
@@ -33,7 +33,7 @@ func QueryUser(username string) (*model.User, error) {
 	return user, nil
 }
 
-// 通过用户名密码验证用户
+// Authorization 通过用户名密码验证用户
 func Authorization(username, password string) (*model.User, error) {
 	user, err := QueryUser(username)
 	if err != nil {
@@ -48,7 +48,7 @@ func Authorization(username, password string) (*model.User, error) {
 	return user, nil
 }
 
-// 分页查询用户
+// ListUser 分页查询用户
 func ListUser(fields []string, page, pageSize int) (count int64, users []model.User, err error) {
 	daoIns, err := GetDao()
 	if err != nil {
@@ -77,7 +77,7 @@ func ListUser(fields []string, page, pageSize int) (count int64, users []model.U
 	return count, users, nil
 }
 
-// 新增用户
+// CreateUser 新增用户
 func CreateUser(user *model.User) (*model.User, error) {
 	daoIns, err := GetDao()
 	if err != nil {
@@ -91,7 +91,7 @@ func CreateUser(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-// 删除用户
+// DeleteUser 删除用户
 func DeleteUser(pk interface{}) error {
 	daoIns, err := GetDao()
 	if err != nil {
@@ -105,7 +105,7 @@ func DeleteUser(pk interface{}) error {
 	return nil
 }
 
-// 更新用户
+// UpdateUser 更新用户
 func UpdateUser(pk, v interface{}) error {
 	daoIns, err := GetDao()
 	if err != nil {
@@ -119,7 +119,7 @@ func UpdateUser(pk, v interface{}) error {
 	return nil
 }
 
-// 创建管理员账户
+// CreateSuperuserIfNotExists 创建管理员账户
 func CreateSuperuserIfNotExists(username, password string) error {
 	_, err := CreateUser(&model.User{
 		Username: username,

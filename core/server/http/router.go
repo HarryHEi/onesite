@@ -58,6 +58,15 @@ func initApiV1(s *Service) {
 		adminRouter.DELETE("/user/:pk", admin.DeleteUser())
 		adminRouter.PATCH("/user/:pk", admin.PatchUpdateUser())
 	}
+
+	// chat
+	chatRouter := v1Router.Group("/chat")
+	chatRouter.Use(
+		authMiddleware.MiddlewareFunc(),
+	)
+	{
+		chatRouter.GET("/history", chat.MessageHistory())
+	}
 }
 
 func initWsV1(s *Service) {
