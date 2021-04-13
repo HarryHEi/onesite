@@ -17,10 +17,7 @@ type AuthTestSuite struct {
 }
 
 func (s *AuthTestSuite) SetupTest() {
-	err := orm.InitOrm(
-		orm.DriverName("mysql"),
-		orm.Dsn("herui:Admin@123@tcp(172.172.177.191:3306)/onesite_dev?charset=utf8mb4&parseTime=true"),
-	)
+	err := orm.InitOrm()
 	require.Nil(s.T(), err)
 	s.OrmDb, err = orm.GetDb()
 	require.Nil(s.T(), err)

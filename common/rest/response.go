@@ -60,7 +60,7 @@ func FailedWithErr(c *gin.Context, code int, err error) {
 	c.Abort()
 }
 
-// 分页查询固定响应格式
+// PaginationResponse 分页查询固定响应格式
 type PaginationResponse struct {
 	Count int64       `json:"count"`
 	Data  interface{} `json:"data"`

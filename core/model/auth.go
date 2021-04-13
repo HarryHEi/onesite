@@ -1,6 +1,6 @@
 package model
 
-// 用户账户
+// User 用户账户
 type User struct {
 	Model
 	Username string `gorm:"unique;not null;size:32" json:"username,omitempty"`

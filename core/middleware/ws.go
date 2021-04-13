@@ -6,7 +6,7 @@ import (
 	"onesite/core/model"
 )
 
-// 从会话keys解析用户实例
+// ParseWsUser 从会话keys解析用户实例
 func ParseWsUser(session *melody.Session) (*model.User, bool) {
 	user, exist := session.Get("user")
 	if !exist {

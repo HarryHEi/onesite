@@ -119,7 +119,7 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 	return authMiddleware
 }
 
-// 解析用户实例，保存到key="userInstance"
+// ParseUserMiddleware 解析用户实例，保存到key="userInstance"
 func ParseUserMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		_, exist := c.Get("userInstance")
@@ -141,7 +141,7 @@ func ParseUserMiddleware() func(c *gin.Context) {
 	}
 }
 
-// 从上下文获取设置的用户实例
+// ParseUser 从上下文获取设置的用户实例
 func ParseUser(c *gin.Context) *model.User {
 	user, exist := c.Get("userInstance")
 	if !exist {
@@ -154,7 +154,7 @@ func ParseUser(c *gin.Context) *model.User {
 	return userInstance
 }
 
-// 检查管理员权限
+// AdminPermissionMiddleware 检查管理员权限
 func AdminPermissionMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		user := ParseUser(c)

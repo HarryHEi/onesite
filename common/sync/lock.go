@@ -7,7 +7,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-// Redis Distribute Lock
+// RDLock Redis Distribute Lock
 type RDLock struct {
 	_redis *redis.Client
 	ctx    context.Context

@@ -50,26 +50,26 @@ func GetDb() (*gorm.DB, error) {
 
 type Option func(*config.DbConfig)
 
-func DriverName(driverName string) Option {
-	return func(config *config.DbConfig) {
-		config.DriverName = driverName
-	}
-}
-
-func Dsn(dsn string) Option {
-	return func(config *config.DbConfig) {
-		config.Dsn = dsn
-	}
-}
-
-func MaxOpenConn(maxOpenConn int) Option {
-	return func(config *config.DbConfig) {
-		config.MaxOpenConn = maxOpenConn
-	}
-}
-
-func MaxIdleConn(maxIdleConn int) Option {
-	return func(config *config.DbConfig) {
-		config.MaxIdleConn = maxIdleConn
-	}
-}
+//func DriverName(driverName string) Option {
+//	return func(config *config.DbConfig) {
+//		config.DriverName = driverName
+//	}
+//}
+//
+//func Dsn(dsn string) Option {
+//	return func(config *config.DbConfig) {
+//		config.Dsn = dsn
+//	}
+//}
+//
+//func MaxOpenConn(maxOpenConn int) Option {
+//	return func(config *config.DbConfig) {
+//		config.MaxOpenConn = maxOpenConn
+//	}
+//}
+//
+//func MaxIdleConn(maxIdleConn int) Option {
+//	return func(config *config.DbConfig) {
+//		config.MaxIdleConn = maxIdleConn
+//	}
+//}

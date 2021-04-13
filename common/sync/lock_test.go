@@ -2,11 +2,13 @@ package sync_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
 	"onesite/common/redis"
 	"onesite/common/sync"
-	"testing"
 )
 
 func TestRDLock_Lock(t *testing.T) {

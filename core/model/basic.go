@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// 数据库表通用结构
+// Model 数据库表通用结构
 type Model struct {
 	ID        uint            `gorm:"primarykey" json:"id,omitempty"`
 	CreatedAt *time.Time      `json:"created_at,omitempty"`
