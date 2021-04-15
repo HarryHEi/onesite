@@ -29,15 +29,42 @@ type FileDescribe struct {
 
 // CreateFile 文件档案入库
 func CreateFile(file *model.File) (*model.File, error) {
-	dao, err := GetDao()
+	daoIns, err := GetDao()
 	if err != nil {
 		return nil, err
 	}
-	ret := dao.Db.Create(file)
+	ret := daoIns.Db.Create(file)
 	if ret.Error != nil {
 		return nil, ret.Error
 	}
 	return file, nil
+}
+
+func QueryFile(pk int) (*model.File, error) {
+	daoIns, err := GetDao()
+	if err != nil {
+		return nil, err
+	}
+	var file model.File
+	ret := daoIns.Db.Model(&model.File{}).First(&file, pk)
+	if ret.Error != nil {
+		return nil, ret.Error
+	}
+	return &file, nil
+}
+
+// DeleteFile 删除文件档案
+func DeleteFile(pk interface{}) error {
+	daoIns, err := GetDao()
+	if err != nil {
+		return err
+	}
+
+	ret := daoIns.Db.Model(&model.File{}).Unscoped().Delete(model.File{}, pk)
+	if ret.Error != nil {
+		return ret.Error
+	}
+	return nil
 }
 
 // ListFiles 分页查询文件
@@ -110,8 +137,8 @@ func UploadToFs(owner string, src io.Reader, filename string) (*model.File, erro
 	uploadUrl := fmt.Sprintf(
 		"%s://%s:%d/%s",
 		config.CoreCfg.Weed.Protocol,
-		config.CoreCfg.Weed.VolumeHost,
-		config.CoreCfg.Weed.VolumePort,
+		config.CoreCfg.Weed.FsHost,
+		config.CoreCfg.Weed.FsPort,
 		fileAssign.Fid,
 	)
 	response, err := http.Post(uploadUrl, writer.FormDataContentType(), body)
@@ -140,6 +167,7 @@ func UploadToFs(owner string, src io.Reader, filename string) (*model.File, erro
 	}
 	file, err := CreateFile(&model.File{
 		Name:  filenamePart,
+		Fid:   fileAssign.Fid,
 		Size:  fileDesc.Size,
 		Owner: owner,
 	})

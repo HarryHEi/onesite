@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"onesite/core/server/api/v1/fs"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -12,6 +11,7 @@ import (
 	"onesite/core/middleware"
 	"onesite/core/server/api/v1/admin"
 	"onesite/core/server/api/v1/chat"
+	"onesite/core/server/api/v1/fs"
 	"onesite/core/server/api/v1/user"
 )
 
@@ -79,6 +79,8 @@ func initApiV1(s *Service) {
 	{
 		fsRouter.GET("/list", fs.ListFiles())
 		fsRouter.POST("/upload", fs.UploadFile())
+		fsRouter.GET("/download/:pk", fs.DownloadFile())
+		fsRouter.DELETE("/delete/:pk", fs.DeleteFile())
 	}
 }
 
