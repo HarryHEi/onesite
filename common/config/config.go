@@ -79,6 +79,13 @@ func defaultConfig() *CoreConfig {
 			"mongodb://172.172.177.191:27017/",
 			"onesite",
 		},
+		Weed: WeedConfig{
+			"http",
+			"172.172.177.191",
+			9333,
+			"172.172.177.191",
+			8080,
+		},
 	}
 }
 
@@ -89,6 +96,7 @@ type CoreConfig struct {
 	Redis     RedisConfig  `toml:"redis"`
 	Auth      AuthConfig   `toml:"auth"`
 	Mongo     MongoConfig  `toml:"mongo"`
+	Weed      WeedConfig   `toml:"weed"`
 }
 
 type ServerConfig struct {
@@ -112,6 +120,14 @@ type RedisConfig struct {
 type MongoConfig struct {
 	Uri string `toml:"uri"`
 	Db  string `toml:"db"`
+}
+
+type WeedConfig struct {
+	Protocol   string `toml:"protocol"`
+	VolumeHost string `toml:"volume_host"`
+	VolumePort int    `toml:"volume_port"`
+	FsHost     string `toml:"fs_host"`
+	FsPort     int    `toml:"fs_port"`
 }
 
 type duration struct {

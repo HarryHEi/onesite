@@ -165,3 +165,15 @@ func AdminPermissionMiddleware() func(c *gin.Context) {
 		c.Next()
 	}
 }
+
+// StrangerDeniedMiddleware 不支持匿名账号的权限
+func StrangerDeniedMiddleware() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		user := ParseUser(c)
+		if user == nil || user.Username == "stranger" {
+			rest.PermissionDenied(c)
+			return
+		}
+		c.Next()
+	}
+}

@@ -82,7 +82,7 @@ func Migrate() error {
 	}
 
 	// DB
-	err = dao.Db.AutoMigrate(&model.User{})
+	err = dao.Db.AutoMigrate(&model.User{}, &model.File{})
 	if err != nil {
 		return err
 	}

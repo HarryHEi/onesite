@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"onesite/core/server/api/v1/fs"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -67,6 +68,18 @@ func initApiV1(s *Service) {
 	{
 		chatRouter.GET("/history", chat.MessageHistory())
 	}
+
+	// fs
+	fsRouter := v1Router.Group("/fs")
+	fsRouter.Use(
+		authMiddleware.MiddlewareFunc(),
+		middleware.ParseUserMiddleware(),
+		middleware.StrangerDeniedMiddleware(),
+	)
+	{
+		fsRouter.GET("/list", fs.ListFiles())
+		fsRouter.POST("/upload", fs.UploadFile())
+	}
 }
 
 func initWsV1(s *Service) {
@@ -99,6 +112,11 @@ func initWsV1(s *Service) {
 
 	// 消息
 	s.M.HandleMessage(func(session *melody.Session, bytes []byte) {
+		// 消息长度限制
+		if len(bytes) > 256 {
+			bytes = bytes[:256]
+		}
+
 		chat.Message(s.M, session, bytes)
 	})
 

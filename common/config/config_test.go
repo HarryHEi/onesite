@@ -33,6 +33,13 @@ uri = "mongodb://172.172.177.191:27017/"
 
 [auth]
 timeout = "8m03s"
+
+[weed]
+protocol = "http"
+volume_host = "172.172.177.191"
+volume_port = 9333
+fs_host = "172.172.177.191"
+fs_port = 8080
 `
 
 func TestInit(t *testing.T) {
