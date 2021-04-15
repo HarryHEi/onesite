@@ -34,7 +34,6 @@ func Message(m *melody.Melody, session *melody.Session, bytes []byte) {
 
 	go func() {
 		err := SaveUserMessage(
-			userInstance.Username,
 			userInstance.Name,
 			string(bytes),
 		)
@@ -44,7 +43,6 @@ func Message(m *melody.Melody, session *melody.Session, bytes []byte) {
 	}()
 	err := m.BroadcastOthers(
 		MakeUserMessage(
-			userInstance.Username,
 			userInstance.Name,
 			string(bytes),
 		),

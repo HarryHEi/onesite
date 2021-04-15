@@ -17,20 +17,20 @@ func MakeSystemMessage(msg string) []byte {
 	return msgStr
 }
 
-func MakeUserMessage(username, name, msg string) []byte {
+func MakeUserMessage(name, msg string) []byte {
 	msgObj := model.Message{
 		Code: model.UserMsgCode,
-		Src:  name + "(" + username + ")",
+		Src:  name,
 		Data: msg,
 	}
 	msgStr, _ := json.Marshal(msgObj)
 	return msgStr
 }
 
-func SaveUserMessage(username, name, msg string) error {
+func SaveUserMessage(name, msg string) error {
 	return dao.SaveMessage(&model.Message{
 		Code: model.UserMsgCode,
-		Src:  name + "(" + username + ")",
+		Src:  name,
 		Data: msg,
 	})
 }
