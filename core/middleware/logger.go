@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"net/http"
+
 	"onesite/common/log"
-	"time"
 )
 
 func Logger() func(c *gin.Context) {
