@@ -58,6 +58,7 @@ func defaultConfig() *CoreConfig {
 		Server: ServerConfig{
 			"0.0.0.0",
 			8000,
+			500,
 		},
 		Db: DbConfig{
 			"mysql",
@@ -102,6 +103,7 @@ type CoreConfig struct {
 type ServerConfig struct {
 	Bind string `toml:"bind"`
 	Port int    `toml:"port"`
+	Rate int64  `toml:"rate"`
 }
 
 type DbConfig struct {

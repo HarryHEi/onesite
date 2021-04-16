@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/olahol/melody.v1"
 
+	"onesite/common/config"
 	"onesite/common/log"
 	"onesite/core/middleware"
 	"onesite/core/server/api/v1/admin"
@@ -25,7 +26,10 @@ func initMiddleware(s *Service) {
 }
 
 func initApiV1(s *Service) {
+	limiter := middleware.InitRateLimiter(config.CoreCfg.Server.Rate)
+
 	v1Router := s.S.Group("/api/v1")
+	v1Router.Use(limiter.Middleware())
 
 	authMiddleware := middleware.GetAuthMiddleware()
 

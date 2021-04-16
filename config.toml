@@ -3,6 +3,7 @@ secret_key = "It's a lonely road to the top."
 [server]
 bind = '0.0.0.0'
 port = 8000
+rate = 500
 
 [db]
 driver_name = "mysql"
