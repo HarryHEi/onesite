@@ -67,6 +67,22 @@ func DeleteFile(pk interface{}) error {
 	return nil
 }
 
+// SetExportFile 设置文件外链访问
+func SetExportFile(pk interface{}, exported bool) error {
+	daoIns, err := GetDao()
+	if err != nil {
+		return err
+	}
+
+	ret := daoIns.Db.Model(&model.File{}).Where("id = ?", pk).Updates(map[string]interface{}{
+		"exported": exported,
+	})
+	if ret.Error != nil {
+		return ret.Error
+	}
+	return nil
+}
+
 // ListFiles 分页查询文件
 func ListFiles(fields []string, page, pageSize int, query interface{}, args ...interface{}) (count int64, files []model.File, err error) {
 	daoIns, err := GetDao()

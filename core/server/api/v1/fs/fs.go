@@ -28,7 +28,7 @@ func ListFiles() func(c *gin.Context) {
 
 		user := middleware.ParseUser(c)
 		count, files, err := dao.ListFiles(
-			[]string{"id", "name", "size", "owner"},
+			[]string{"id", "name", "size", "owner", "exported"},
 			request.Page,
 			request.PageSize,
 			"owner=?",
@@ -164,5 +164,92 @@ func DeleteFile() func(c *gin.Context) {
 			return
 		}
 		rest.NoContent(c)
+	}
+}
+
+// SetExportFile 设置文件为外链访问
+func SetExportFile() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var request rest.PKDetailUri
+		err := c.ShouldBindUri(&request)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+
+		var exportRequest SetExportRequest
+		err = c.ShouldBind(&exportRequest)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+
+		user := middleware.ParseUser(c)
+		file, err := dao.QueryFile(request.PK)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+		if file.Owner != user.Username {
+			rest.PermissionDenied(c)
+			return
+		}
+
+		err = dao.SetExportFile(request.PK, exportRequest.Exported)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+
+		rest.NoContent(c)
+	}
+}
+
+// ExportFile 外链访问文件
+func ExportFile() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var request rest.PKDetailUri
+		err := c.ShouldBindUri(&request)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+
+		file, err := dao.QueryFile(request.PK)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+
+		if !file.Exported {
+			rest.PermissionDenied(c)
+			return
+		}
+
+		// 从文件服务下载文件
+		fileUrl := fmt.Sprintf(
+			"%s://%s:%d/%s",
+			config.CoreCfg.Weed.Protocol,
+			config.CoreCfg.Weed.FsHost,
+			config.CoreCfg.Weed.FsPort,
+			file.Fid,
+		)
+		response, err := http.Get(fileUrl)
+		if err != nil {
+			rest.BadRequest(c, err)
+		}
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Error("DownloadFile Body.Close()", zap.Error(err))
+			}
+		}(response.Body)
+		contentLength := response.ContentLength
+		contentType := response.Header.Get("Content-Type")
+		contentDisposition := response.Header.Get("Content-Disposition")
+		extraHeaders := map[string]string{
+			"Content-Disposition": contentDisposition,
+		}
+		c.DataFromReader(http.StatusOK, contentLength, contentType, response.Body, extraHeaders)
 	}
 }

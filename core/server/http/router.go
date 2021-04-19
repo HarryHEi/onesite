@@ -85,6 +85,13 @@ func initApiV1(s *Service) {
 		fsRouter.POST("/upload", fs.UploadFile())
 		fsRouter.GET("/download/:pk", fs.DownloadFile())
 		fsRouter.DELETE("/delete/:pk", fs.DeleteFile())
+		fsRouter.POST("/export/:pk", fs.SetExportFile())
+	}
+
+	// export
+	exportRouter := v1Router.Group("/export")
+	{
+		exportRouter.GET("/fs/:pk", fs.ExportFile())
 	}
 }
 
