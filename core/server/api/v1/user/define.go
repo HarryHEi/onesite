@@ -7,6 +7,7 @@ type InfoResponse struct {
 	Username string `json:"username"`
 	Name     string `json:"name"`
 	IsAdmin  bool   `json:"is_admin"`
+	Avatar   string `json:"avatar"`
 }
 
 func InfoResponseFromUserModel(user *model.User) *InfoResponse {
@@ -15,5 +16,6 @@ func InfoResponseFromUserModel(user *model.User) *InfoResponse {
 		Username: user.Username,
 		Name:     user.Name,
 		IsAdmin:  user.IsAdmin,
+		Avatar:   user.Avatar,
 	}
 }

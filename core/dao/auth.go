@@ -129,3 +129,17 @@ func CreateSuperuserIfNotExists(username, password string) error {
 	})
 	return err
 }
+
+// QueryUserById 通过用户名查询用户信息
+func QueryUserById(pk interface{}) (*model.User, error) {
+	daoIns, err := GetDao()
+	if err != nil {
+		return nil, err
+	}
+	user := &model.User{}
+	ret := daoIns.Db.Model(&model.User{}).First(user, pk)
+	if ret.Error != nil {
+		return nil, fmt.Errorf("query user failed %e", ret.Error)
+	}
+	return user, nil
+}

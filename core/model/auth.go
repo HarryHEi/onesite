@@ -7,4 +7,5 @@ type User struct {
 	Password string `gorm:"not null;size:128" json:"password,omitempty"`
 	Name     string `gorm:"not null;size:64" json:"name,omitempty"`
 	IsAdmin  bool   `gorm:"not null" json:"is_admin,omitempty"`
+	Avatar   string `gorm:"not null;size:64" json:"avatar,omitempty"`
 }

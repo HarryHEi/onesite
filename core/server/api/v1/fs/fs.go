@@ -13,7 +13,9 @@ import (
 	"onesite/common/log"
 	"onesite/common/rest"
 	"onesite/core/dao"
+	"onesite/core/external"
 	"onesite/core/middleware"
+	"onesite/core/model"
 )
 
 // ListFiles 分页查询文件列表
@@ -110,13 +112,31 @@ func UploadFile() func(c *gin.Context) {
 			}
 		}(src)
 
-		user := middleware.ParseUser(c)
-		d, err := dao.UploadToFs(user.Username, src, file.Filename)
+		var filenamePart string
+		if len(file.Filename) > 32 {
+			filenamePart = file.Filename[:32]
+		} else {
+			filenamePart = file.Filename
+		}
+
+		fileInfo, err := external.UploadFile(src, filenamePart)
 		if err != nil {
 			rest.BadRequest(c, err)
 			return
 		}
-		rest.Success(c, d)
+
+		user := middleware.ParseUser(c)
+		fileIns, err := dao.CreateFile(&model.File{
+			Name:  filenamePart,
+			Fid:   fileInfo.Fid,
+			Size:  fileInfo.Size,
+			Owner: user.Username,
+		})
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+		rest.Success(c, fileIns)
 	}
 }
 
@@ -141,28 +161,24 @@ func DeleteFile() func(c *gin.Context) {
 			return
 		}
 
-		err = dao.DeleteFile(request.PK)
+		daoIns, err := dao.GetDao()
 		if err != nil {
 			rest.BadRequest(c, err)
 			return
 		}
-		fileUrl := fmt.Sprintf(
-			"%s://%s:%d/%s",
-			config.CoreCfg.Weed.Protocol,
-			config.CoreCfg.Weed.FsHost,
-			config.CoreCfg.Weed.FsPort,
-			file.Fid,
-		)
-		req, err := http.NewRequest(http.MethodDelete, fileUrl, nil)
+		tx := daoIns.Db.Begin()
+		err = dao.DeleteFileWithDb(tx, request.PK)
 		if err != nil {
 			rest.BadRequest(c, err)
 			return
 		}
-		_, err = http.DefaultClient.Do(req)
+		err = external.DeleteFile(file.Fid)
 		if err != nil {
+			tx.Rollback()
 			rest.BadRequest(c, err)
 			return
 		}
+		tx.Commit()
 		rest.NoContent(c)
 	}
 }
@@ -226,17 +242,10 @@ func ExportFile() func(c *gin.Context) {
 			return
 		}
 
-		// 从文件服务下载文件
-		fileUrl := fmt.Sprintf(
-			"%s://%s:%d/%s",
-			config.CoreCfg.Weed.Protocol,
-			config.CoreCfg.Weed.FsHost,
-			config.CoreCfg.Weed.FsPort,
-			file.Fid,
-		)
-		response, err := http.Get(fileUrl)
+		response, err := external.DownloadFile(file.Fid, "")
 		if err != nil {
 			rest.BadRequest(c, err)
+			return
 		}
 		defer func(Body io.ReadCloser) {
 			err := Body.Close()

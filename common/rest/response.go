@@ -30,6 +30,10 @@ func BadRequest(c *gin.Context, err error) {
 	FailedWithErr(c, http.StatusBadRequest, err)
 }
 
+func NotFound(c *gin.Context) {
+	FailedWithErr(c, http.StatusNotFound, errors.New("not found"))
+}
+
 func Unauthorized(c *gin.Context, message string) {
 	FailedWithErr(c, http.StatusUnauthorized, errors.New(message))
 }

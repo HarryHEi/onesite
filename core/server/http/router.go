@@ -48,6 +48,7 @@ func initApiV1(s *Service) {
 	)
 	{
 		userRouter.GET("/info", user.Info())
+		userRouter.POST("/avatar", user.UploadAvatar())
 	}
 
 	// 管理员
@@ -92,6 +93,7 @@ func initApiV1(s *Service) {
 	exportRouter := v1Router.Group("/export")
 	{
 		exportRouter.GET("/fs/:pk", fs.ExportFile())
+		exportRouter.GET("/avatar/:pk", user.ExportAvatar())
 	}
 }
 
