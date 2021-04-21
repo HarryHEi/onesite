@@ -49,6 +49,7 @@ func initApiV1(s *Service) {
 	{
 		userRouter.GET("/info", user.Info())
 		userRouter.POST("/avatar", user.UploadAvatar())
+		userRouter.POST("/password", user.UpdatePassword())
 	}
 
 	// 管理员

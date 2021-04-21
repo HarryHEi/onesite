@@ -99,3 +99,27 @@ func ExportAvatar() func(c *gin.Context) {
 		c.DataFromReader(http.StatusOK, contentLength, contentType, response.Body, extraHeaders)
 	}
 }
+
+// UpdatePassword 更新密码
+func UpdatePassword() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var request ChangePasswordRequest
+		err := c.ShouldBind(&request)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+		user := middleware.ParseUser(c)
+		err = dao.UpdateUser(
+			user.ID,
+			map[string]interface{}{
+				"password": dao.GeneratePassword(request.Password),
+			},
+		)
+		if err != nil {
+			rest.BadRequest(c, err)
+			return
+		}
+		rest.NoContent(c)
+	}
+}

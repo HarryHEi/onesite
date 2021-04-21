@@ -19,3 +19,7 @@ func InfoResponseFromUserModel(user *model.User) *InfoResponse {
 		Avatar:   user.Avatar,
 	}
 }
+
+type ChangePasswordRequest struct {
+	Password string `json:"password" form:"password" binding:"required,gte=6,lte=32"`
+}
