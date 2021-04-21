@@ -2,6 +2,7 @@ package sync
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -22,13 +23,22 @@ var (
 		    return 0
 		end
 	`
+	_RDLock *RDLock
 )
 
-func NewRDLock(ctx context.Context, r *redis.Client) *RDLock {
-	return &RDLock{
+func InitRDLock(r *redis.Client) {
+	_RDLock = &RDLock{
 		r,
-		ctx,
+		context.Background(),
 	}
+}
+
+func GetRDLock() (*RDLock, error) {
+	if _RDLock == nil {
+		return nil, errors.New("call InitRDLock before GetRDLock")
+	}
+
+	return _RDLock, nil
 }
 
 func (r *RDLock) Lock(key, value string, timeoutMs int) bool {

@@ -1,7 +1,6 @@
 package sync_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/google/uuid"
@@ -22,7 +21,8 @@ func TestRDLock_Lock(t *testing.T) {
 	key := "test_key"
 	value := uuid.New().String()
 
-	l := sync.NewRDLock(context.Background(), r)
+	sync.InitRDLock(r)
+	l, _ := sync.GetRDLock()
 
 	locked := l.Lock(key, value, 10000)
 	require.Equal(t, locked, true)

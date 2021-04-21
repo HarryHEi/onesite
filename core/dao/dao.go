@@ -12,6 +12,7 @@ import (
 	mongo2 "onesite/common/mongo"
 	"onesite/common/orm"
 	redis2 "onesite/common/redis"
+	"onesite/common/sync"
 	"onesite/core/model"
 )
 
@@ -20,9 +21,10 @@ var (
 )
 
 type Dao struct {
-	Db    *gorm.DB
-	Redis *redis.Client
-	Mongo *mongo.Database
+	Db     *gorm.DB
+	Redis  *redis.Client
+	Mongo  *mongo.Database
+	RDLock *sync.RDLock
 }
 
 func InitDao() (err error) {
@@ -60,10 +62,14 @@ func InitDao() (err error) {
 		return err
 	}
 
+	sync.InitRDLock(rd)
+	rdl, _ := sync.GetRDLock()
+
 	_dao = &Dao{
 		db,
 		rd,
 		mg,
+		rdl,
 	}
 	return nil
 }
