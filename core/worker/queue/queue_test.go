@@ -1,4 +1,4 @@
-package worker_test
+package queue_test
 
 import (
 	"fmt"
@@ -7,19 +7,20 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"onesite/common/redis"
-	"onesite/core/worker"
+	"onesite/core/worker/queue"
 )
 
 func TestRedisQueue(t *testing.T) {
 	_ = redis.InitRedis()
 	rd, _ := redis.GetRedis()
-	q := worker.NewRedisQueue(rd, "my-topic-1")
-	q.Clear()
+	const TOPIC = "my-topic-1"
+	q := queue.NewRedisQueue(rd)
+	q.ClearTopic(TOPIC)
 	for number := 1; number < 10; number++ {
-		q.Put(number)
+		q.PutTopic(TOPIC, number)
 	}
 	for number := 1; number < 10; number++ {
-		v := q.Get()
+		v := q.GetTopic(TOPIC)
 		v, ok := v.(string)
 		require.Equal(t, ok, true)
 		require.Equal(t, v, fmt.Sprintf("%d", number))

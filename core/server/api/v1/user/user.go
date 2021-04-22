@@ -13,6 +13,8 @@ import (
 	"onesite/core/dao"
 	"onesite/core/external"
 	"onesite/core/middleware"
+	"onesite/core/worker"
+	"onesite/core/worker/tasks"
 )
 
 func Info() func(c *gin.Context) {
@@ -45,6 +47,10 @@ func UploadAvatar() func(c *gin.Context) {
 		}
 
 		user := middleware.ParseUser(c)
+
+		// 不必要的，仅用来测试的事件
+		worker.ProduceTopic(tasks.DemoTopic, user.Username)
+
 		if user.Avatar != "" {
 			_ = external.DeleteFile(user.Avatar)
 		}

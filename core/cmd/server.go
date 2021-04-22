@@ -10,6 +10,7 @@ import (
 	"onesite/common/log"
 	"onesite/core/dao"
 	"onesite/core/server"
+	"onesite/core/worker"
 )
 
 var (
@@ -34,6 +35,11 @@ var serverCmd = &cobra.Command{
 			}
 
 			err = dao.InitDao()
+			if err != nil {
+				return err
+			}
+
+			err = worker.InitWorker()
 			if err != nil {
 				return err
 			}
