@@ -10,30 +10,22 @@ import (
 	"onesite/core/model"
 )
 
-func SaveMessage(message *model.Message) error {
-	dao, err := GetDao()
-	if err != nil {
-		return err
-	}
-	collection := dao.Mongo.Collection(model.MessageCollectionName)
+func (dao *Dao) SaveMessage(message *model.Message) error {
+	collection := dao.Mongo.Db.Collection(model.MessageCollectionName)
 	message.Creation = time.Now()
-	_, err = collection.InsertOne(context.Background(), message)
+	_, err := collection.InsertOne(context.Background(), message)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func QueryMessage(limit int64) ([]model.Message, error) {
-	dao, err := GetDao()
-	if err != nil {
-		return nil, err
-	}
+func (dao *Dao) QueryMessage(limit int64) ([]model.Message, error) {
 	if limit > 20 {
 		limit = 20
 	}
 
-	collection := dao.Mongo.Collection(model.MessageCollectionName)
+	collection := dao.Mongo.Db.Collection(model.MessageCollectionName)
 
 	opts := options.FindOptions{
 		Limit: &limit,

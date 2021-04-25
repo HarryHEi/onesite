@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"onesite/common/log"
+	"onesite/core/log"
 )
 
 func Logger() func(c *gin.Context) {

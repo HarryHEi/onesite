@@ -6,15 +6,18 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"onesite/common/redis"
+	"onesite/core/config"
+	"onesite/core/dao/db"
 	"onesite/core/worker/queue"
 )
 
 func TestRedisQueue(t *testing.T) {
-	_ = redis.InitRedis()
-	rd, _ := redis.GetRedis()
+	config.CfgRootPath = "../../../configs"
+
+	rd, err := db.NewRedis()
+	require.Nil(t, err)
 	const TOPIC = "my-topic-1"
-	q := queue.NewRedisQueue(rd)
+	q := queue.NewRedisQueue(rd.Db)
 	q.ClearTopic(TOPIC)
 	for number := 1; number < 10; number++ {
 		q.PutTopic(TOPIC, number)

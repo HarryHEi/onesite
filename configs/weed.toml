@@ -1,0 +1,5 @@
+protocol = "http"
+volume_host = "172.172.177.191"
+volume_port = 9333
+fs_host = "172.172.177.191"
+fs_port = 8080

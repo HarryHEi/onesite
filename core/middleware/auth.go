@@ -5,19 +5,34 @@ import (
 	"log"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 
-	"onesite/common/config"
-	"onesite/common/rest"
+	"onesite/core/config"
 	"onesite/core/dao"
 	"onesite/core/model"
+	"onesite/core/server/http/rest"
 )
 
-var (
-	authMiddleware *jwt.GinJWTMiddleware
-	identityKey    = "username"
+const (
+	identityKey = "username"
 )
+
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
+}
+
+type AuthConfig struct {
+	Timeout   duration `toml:"timeout"`
+	SecretKey string   `toml:"secret_key"`
+}
 
 type AuthPayload struct {
 	Username string
@@ -28,12 +43,18 @@ type LoginForm struct {
 	Password string
 }
 
-func InitAuthMiddleware() (err error) {
-	authMiddleware, err = jwt.New(&jwt.GinJWTMiddleware{
+func NewAuthMiddleware(d *dao.Dao) (*jwt.GinJWTMiddleware, error) {
+	var cfg AuthConfig
+	_, err := toml.DecodeFile(config.GetCfgPath("auth.toml"), &cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "jwt",
-		Key:         []byte(config.CoreCfg.SecretKey),
-		Timeout:     config.CoreCfg.Auth.Timeout.Duration,
-		MaxRefresh:  config.CoreCfg.Auth.Timeout.Duration,
+		Key:         []byte(cfg.SecretKey),
+		Timeout:     cfg.Timeout.Duration,
+		MaxRefresh:  cfg.Timeout.Duration,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*AuthPayload); ok {
@@ -57,7 +78,7 @@ func InitAuthMiddleware() (err error) {
 			username := loginForm.Username
 			password := loginForm.Password
 
-			user, err := dao.Authorization(username, password)
+			user, err := d.Authorization(username, password)
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
@@ -108,19 +129,10 @@ func InitAuthMiddleware() (err error) {
 		// TimeFunc provides the current time. You can override it to use another time value. This is useful for testing or if your server uses a different time zone than your tokens.
 		TimeFunc: time.Now,
 	})
-	return err
-}
-
-func GetAuthMiddleware() *jwt.GinJWTMiddleware {
-	if authMiddleware == nil {
-		panic("call InitAuthMiddleware before GetAuthMiddleware")
-	}
-
-	return authMiddleware
 }
 
 // ParseUserMiddleware 解析用户实例，保存到key="userInstance"
-func ParseUserMiddleware() func(c *gin.Context) {
+func ParseUserMiddleware(d *dao.Dao) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		_, exist := c.Get("userInstance")
 		if exist {
@@ -132,7 +144,7 @@ func ParseUserMiddleware() func(c *gin.Context) {
 		if !ok {
 			rest.BadRequest(c, errors.New("invalid username"))
 		}
-		user, err := dao.QueryUser(username)
+		user, err := d.QueryUser(username)
 		if err != nil {
 			rest.BadRequest(c, err)
 			return

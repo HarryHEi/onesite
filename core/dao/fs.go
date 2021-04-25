@@ -18,25 +18,17 @@ type FileDescribe struct {
 }
 
 // CreateFile 文件档案入库
-func CreateFile(file *model.File) (*model.File, error) {
-	daoIns, err := GetDao()
-	if err != nil {
-		return nil, err
-	}
-	ret := daoIns.Db.Create(file)
+func (dao *Dao) CreateFile(file *model.File) (*model.File, error) {
+	ret := dao.Orm.Db.Create(file)
 	if ret.Error != nil {
 		return nil, ret.Error
 	}
 	return file, nil
 }
 
-func QueryFile(pk int) (*model.File, error) {
-	daoIns, err := GetDao()
-	if err != nil {
-		return nil, err
-	}
+func (dao *Dao) QueryFile(pk int) (*model.File, error) {
 	var file model.File
-	ret := daoIns.Db.Model(&model.File{}).First(&file, pk)
+	ret := dao.Orm.Db.Model(&model.File{}).First(&file, pk)
 	if ret.Error != nil {
 		return nil, ret.Error
 	}
@@ -44,7 +36,7 @@ func QueryFile(pk int) (*model.File, error) {
 }
 
 // DeleteFileWithDb 删除文件档案
-func DeleteFileWithDb(db *gorm.DB, pk interface{}) error {
+func (dao *Dao) DeleteFileWithDb(db *gorm.DB, pk interface{}) error {
 	ret := db.Model(&model.File{}).Unscoped().Delete(model.File{}, pk)
 	return ret.Error
 }
@@ -60,13 +52,8 @@ func DeleteFileWithDb(db *gorm.DB, pk interface{}) error {
 //}
 
 // SetExportFile 设置文件外链访问
-func SetExportFile(pk interface{}, exported bool) error {
-	daoIns, err := GetDao()
-	if err != nil {
-		return err
-	}
-
-	ret := daoIns.Db.Model(&model.File{}).Where("id = ?", pk).Updates(map[string]interface{}{
+func (dao *Dao) SetExportFile(pk interface{}, exported bool) error {
+	ret := dao.Orm.Db.Model(&model.File{}).Where("id = ?", pk).Updates(map[string]interface{}{
 		"exported": exported,
 	})
 	if ret.Error != nil {
@@ -76,12 +63,7 @@ func SetExportFile(pk interface{}, exported bool) error {
 }
 
 // ListFiles 分页查询文件
-func ListFiles(fields []string, page, pageSize int, query interface{}, args ...interface{}) (count int64, files []model.File, err error) {
-	daoIns, err := GetDao()
-	if err != nil {
-		return 0, nil, err
-	}
-
+func (dao *Dao) ListFiles(fields []string, page, pageSize int, query interface{}, args ...interface{}) (count int64, files []model.File, err error) {
 	if page <= 0 || pageSize <= 0 {
 		page = 1
 		pageSize = 10
@@ -89,7 +71,7 @@ func ListFiles(fields []string, page, pageSize int, query interface{}, args ...i
 
 	offset := (page - 1) * pageSize
 
-	ret := daoIns.Db.Model(&model.File{}).Select(fields).Where(query, args...).Count(&count)
+	ret := dao.Orm.Db.Model(&model.File{}).Select(fields).Where(query, args...).Count(&count)
 	if ret.Error != nil {
 		return 0, nil, ret.Error
 	}
@@ -97,7 +79,7 @@ func ListFiles(fields []string, page, pageSize int, query interface{}, args ...i
 		return 0, nil, nil
 	}
 
-	ret = daoIns.Db.Model(&model.File{}).Select(fields).Where(query, args...).Offset(offset).Limit(pageSize).Find(&files)
+	ret = dao.Orm.Db.Model(&model.File{}).Select(fields).Where(query, args...).Offset(offset).Limit(pageSize).Find(&files)
 	if ret.Error != nil {
 		return 0, nil, ret.Error
 	}

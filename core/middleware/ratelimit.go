@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juju/ratelimit"
 
-	"onesite/common/rest"
+	"onesite/core/server/http/rest"
 )
 
 type RateLimiter struct {
 	Bucket *ratelimit.Bucket
 }
 
-func InitRateLimiter(qps int64) *RateLimiter {
+func NewRateLimiter(qps int64) *RateLimiter {
 	return &RateLimiter{
 		ratelimit.NewBucketWithRate(float64(qps), qps),
 	}

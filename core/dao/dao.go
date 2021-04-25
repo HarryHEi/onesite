@@ -2,103 +2,69 @@ package dao
 
 import (
 	"context"
-	"errors"
 
-	"github.com/go-redis/redis/v8"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"gorm.io/gorm"
 
-	mongo2 "onesite/common/mongo"
-	"onesite/common/orm"
-	redis2 "onesite/common/redis"
-	"onesite/common/sync"
+	"onesite/core/dao/db"
+	"onesite/core/dao/external"
+	"onesite/core/dao/sync"
 	"onesite/core/model"
 )
 
-var (
-	_dao *Dao
-)
-
 type Dao struct {
-	Db     *gorm.DB
-	Redis  *redis.Client
-	Mongo  *mongo.Database
+	Orm    *db.OrmCli
+	Redis  *db.RedisCli
+	Mongo  *db.MongoCli
 	RDLock *sync.RDLock
+	Weed   *external.Weed
 }
 
-func InitDao() (err error) {
-	if _dao != nil {
-		return nil
-	}
-
-	err = orm.InitOrm()
+func NewDao() (*Dao, error) {
+	orm, err := db.NewOrm()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	db, err := orm.GetDb()
+	rd, err := db.NewRedis()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = redis2.InitRedis()
+	mg, err := db.NewMongo()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	rd, err := redis2.GetRedis()
+	rdl := sync.NewRDLock(rd.Db)
+
+	wd, err := external.NewWeed()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = mongo2.InitMongo()
-	if err != nil {
-		return err
-	}
-
-	mg, err := mongo2.GetMongo()
-	if err != nil {
-		return err
-	}
-
-	sync.InitRDLock(rd)
-	rdl, _ := sync.GetRDLock()
-
-	_dao = &Dao{
-		db,
+	return &Dao{
+		orm,
 		rd,
 		mg,
 		rdl,
-	}
-	return nil
+		wd,
+	}, nil
 }
 
-func GetDao() (*Dao, error) {
-	if _dao == nil {
-		return nil, errors.New("call InitDao before GetDao")
-	}
-	return _dao, nil
-}
-
-func Migrate() error {
-	dao, err := GetDao()
-	if err != nil {
-		return err
-	}
-
+func (dao *Dao) Migrate() error {
 	// DB
-	err = dao.Db.AutoMigrate(&model.User{}, &model.File{})
+	err := dao.Orm.Db.AutoMigrate(&model.User{}, &model.File{})
 	if err != nil {
 		return err
 	}
 
 	// Mongo
-	err = dao.Mongo.CreateCollection(context.Background(), model.MessageCollectionName)
+	err = dao.Mongo.Db.CreateCollection(context.Background(), model.MessageCollectionName)
 	if err != nil {
 		return err
 	}
-	indexes := dao.Mongo.Collection(model.MessageCollectionName).Indexes()
+	indexes := dao.Mongo.Db.Collection(model.MessageCollectionName).Indexes()
 	_, err = indexes.CreateOne(
 		context.Background(),
 		mongo.IndexModel{

@@ -58,42 +58,25 @@ func (p *DefaultProducer) ProduceTopic(topic string, v interface{}) {
 	p.Q.PutTopic(topic, vStr)
 }
 
-var _worker *Worker
-
 type Worker struct {
 	Q         queue.Queue
 	Producer  Producer
 	Consumers map[string]Consumer
 }
 
-func InitWorker() error {
-	daoIns, err := dao.GetDao()
-	if err != nil {
-		return err
-	}
-
-	q := queue.NewRedisQueue(daoIns.Redis)
-	_worker = &Worker{
+func NewWorker(d *dao.Dao) *Worker {
+	q := queue.NewRedisQueue(d.Redis.Db)
+	return &Worker{
 		Q:         q,
 		Producer:  NewProducer(q),
 		Consumers: make(map[string]Consumer),
 	}
-	return nil
 }
 
-// RunWorker 启动事件消费者
-func RunWorker() error {
-	err := InitWorker()
-	if err != nil {
-		return err
-	}
-	InitTasks(_worker)
+// Run 启动事件消费者
+func (w *Worker) Run() {
+	w.InitTasks()
 	select {}
-}
-
-// ProduceTopic 生产事件
-func ProduceTopic(topic string, v string) {
-	_worker.ProduceTopic(topic, v)
 }
 
 func (w *Worker) NewConsumer(topic string) Consumer {
@@ -113,8 +96,8 @@ func (w *Worker) ProduceTopic(topic string, v string) {
 }
 
 // InitTasks Create Consumer and register Handler
-func InitTasks(worker *Worker) {
+func (w *Worker) InitTasks() {
 	// demo topic
-	consumer := worker.NewConsumer(tasks.DemoTopic)
+	consumer := w.NewConsumer(tasks.DemoTopic)
 	consumer.AddHandler(tasks.MakeGreeting)
 }

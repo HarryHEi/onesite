@@ -5,32 +5,66 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/BurntSushi/toml"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/olahol/melody.v1"
 
-	"onesite/common/config"
+	"onesite/core/config"
+	"onesite/core/dao"
+	"onesite/core/server/http/service"
+	"onesite/core/worker"
 )
 
-type Service struct {
-	S *gin.Engine
-	M *melody.Melody
+type ServerConfig struct {
+	Bind string `toml:"bind"`
+	Port int    `toml:"port"`
+	Rate int64  `toml:"rate"`
 }
 
-func NewHttpService() *Service {
-	_s := &Service{
-		gin.New(),
-		melody.New(),
+type Server struct {
+	Svc *service.Service
+	Cfg ServerConfig
+	S   *gin.Engine
+	M   *melody.Melody
+	Dao *dao.Dao
+	w   *worker.Worker
+}
+
+func NewHttpServer() (*Server, error) {
+	var cfg ServerConfig
+	_, err := toml.DecodeFile(config.GetCfgPath("server.toml"), &cfg)
+	if err != nil {
+		return nil, err
 	}
 
-	InitRouter(_s)
+	d, err := dao.NewDao()
+	if err != nil {
+		return nil, nil
+	}
 
-	return _s
+	w := worker.NewWorker(d)
+
+	svc := service.NewService(d, w)
+
+	s := &Server{
+		svc,
+		cfg,
+		gin.New(),
+		melody.New(),
+		d,
+		w,
+	}
+	err = InitRouter(s)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
-func (s *Service) Run() error {
+func (s *Server) Run() error {
 	lis, err := net.Listen(
 		"tcp",
-		fmt.Sprintf("%s:%d", config.CoreCfg.Server.Bind, config.CoreCfg.Server.Port),
+		fmt.Sprintf("%s:%d", s.Cfg.Bind, s.Cfg.Port),
 	)
 	if err != nil {
 		return err
@@ -42,8 +76,10 @@ func (s *Service) Run() error {
 	return err
 }
 
-func RunHttpServer() (err error) {
-	service := NewHttpService()
-	err = service.Run()
-	return err
+func RunHttpServer() error {
+	s, err := NewHttpServer()
+	if err != nil {
+		return err
+	}
+	return s.Run()
 }
