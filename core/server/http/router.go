@@ -83,6 +83,19 @@ func InitRouter(s *Server) error {
 		fsRouter.POST("/export/:pk", s.Svc.SetExportFile())
 	}
 
+	// blog
+	blogRouter := v1Router.Group("/blog")
+	blogRouter.Use(
+		authMiddleware.MiddlewareFunc(),
+		middleware.ParseUserMiddleware(s.Dao),
+		middleware.StrangerDeniedMiddleware(),
+	)
+	{
+		blogRouter.POST("/article", s.Svc.CommitArticle())
+		blogRouter.GET("/article", s.Svc.ListArticle())
+		blogRouter.GET("/article/:pk", s.Svc.ArticleDetail())
+	}
+
 	// export
 	exportRouter := v1Router.Group("/export")
 	{
