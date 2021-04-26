@@ -26,7 +26,7 @@ func (s *Service) CommitArticle() func(c *gin.Context) {
 		err = s.Dao.CreateArticle(&model.Article{
 			Author:   user.Username,
 			Title:    request.Title,
-			Document: request.Title,
+			Document: request.Document,
 			Comments: []model.Comment{},
 		})
 		rest.NoContent(c)
